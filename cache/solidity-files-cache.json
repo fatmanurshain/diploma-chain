@@ -1,0 +1,40 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/fatmanursahin/Desktop/yl_projects/blokzincir/diploma_chain/contracts/DiplomaRegistry.sol": {
+      "lastModificationDate": 1774867486998,
+      "contentHash": "1156c7a422c892d60baf8e1b6e393e8d",
+      "sourceName": "contracts/DiplomaRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "DiplomaRegistry"
+      ]
+    }
+  }
+}

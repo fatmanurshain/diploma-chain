@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DiplomaChain — Akademik Belge Doğrulama</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --navy: #0a0f1e;
+      --navy2: #111827;
+      --navy3: #1a2540;
+      --surface: #1e2d4a;
+      --surface2: #243353;
+      --border: rgba(120, 160, 255, 0.12);
+      --border2: rgba(120, 160, 255, 0.22);
+      --accent: #4f8fff;
+      --accent2: #7eb8ff;
+      --gold: #f0c060;
+      --gold2: #fad97a;
+      --green: #34d399;
+      --red: #f87171;
+      --text: #e8edf8;
+      --text2: #8fa3c8;
+      --text3: #4f6490;
+      --mono: 'DM Mono', monospace;
+      --serif: 'DM Serif Display', serif;
+      --sans: 'Instrument Sans', sans-serif;
+    }
+
+    body {
+      background: var(--navy);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid bg */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(79, 143, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79, 143, 255, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ── */
+    header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 40px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 15, 30, 0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--gold));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .logo-text {
+      font-family: var(--serif);
+      font-size: 22px;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+
+    .logo-text span {
+      color: var(--gold);
+    }
+
+    .chain-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      background: rgba(79, 143, 255, 0.1);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      color: var(--accent2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    nav {
+      display: flex;
+      gap: 4px;
+    }
+
+    .nav-btn {
+      padding: 8px 18px;
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--text2);
+      font-family: var(--sans);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .nav-btn:hover,
+    .nav-btn.active {
+      background: rgba(79, 143, 255, 0.1);
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    .nav-btn.active {
+      color: var(--accent2);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 80px 40px 60px;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      padding: 6px 16px;
+      background: rgba(240, 192, 96, 0.07);
+      border: 1px solid rgba(240, 192, 96, 0.2);
+      border-radius: 20px;
+    }
+
+    h1 {
+      font-family: var(--serif);
+      font-size: clamp(36px, 5vw, 60px);
+      line-height: 1.1;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero p {
+      font-size: 17px;
+      color: var(--text2);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.6;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-bottom: 60px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: var(--serif);
+      font-size: 32px;
+      color: var(--text);
+      display: block;
+    }
+
+    .stat-lbl {
+      font-size: 12px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: var(--mono);
+    }
+
+    /* ── Tabs ── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 32px;
+      gap: 2px;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-family: var(--sans);
+      font-size: 14px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .2s;
+      position: relative;
+      top: 1px;
+    }
+
+    .tab:hover {
+      color: var(--text2);
+    }
+
+    .tab.active {
+      color: var(--accent2);
+      border-bottom-color: var(--accent);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+      animation: fadeUp .3s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--navy2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 16px;
+      transition: border-color .2s;
+    }
+
+    .card:hover {
+      border-color: var(--border2);
+    }
+
+    .card-title {
+      font-family: var(--serif);
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-icon {
+      width: 28px;
+      height: 28px;
+      background: rgba(79, 143, 255, 0.12);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    /* ── Form ── */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: var(--mono);
+      margin-bottom: 8px;
+    }
+
+    input[type=text],
+    input[type=file],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--navy3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    input[type=text]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      background: rgba(26, 37, 64, 0.8);
+    }
+
+    input[type=file] {
+      cursor: pointer;
+      padding: 10px 16px;
+    }
+
+    .file-drop {
+      border: 2px dashed var(--border2);
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+    }
+
+    .file-drop:hover,
+    .file-drop.drag-over {
+      border-color: var(--accent);
+      background: rgba(79, 143, 255, 0.05);
+    }
+
+    .file-drop input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .file-drop-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .file-drop p {
+      color: var(--text2);
+      font-size: 14px;
+    }
+
+    .file-drop span {
+      color: var(--accent2);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 13px 28px;
+      border-radius: 10px;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5f9fff;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #e6a800, var(--gold));
+      color: var(--navy);
+      font-weight: 600;
+    }
+
+    .btn-gold:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent2);
+    }
+
+    .btn-full {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* ── Hash Display ── */
+    .hash-box {
+      background: var(--navy3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent2);
+      word-break: break-all;
+      line-height: 1.6;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      background: rgba(79, 143, 255, 0.1);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--text2);
+      cursor: pointer;
+      font-family: var(--mono);
+    }
+
+    .copy-btn:hover {
+      color: var(--accent2);
+      border-color: var(--accent);
+    }
+
+    /* ── Result ── */
+    .result-card {
+      border-radius: 16px;
+      padding: 28px;
+      margin-top: 20px;
+      animation: fadeUp .4s ease;
+    }
+
+    .result-valid {
+      background: rgba(52, 211, 153, 0.06);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+
+    .result-invalid {
+      background: rgba(248, 113, 113, 0.06);
+      border: 1px solid rgba(248, 113, 113, 0.25);
+    }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .result-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .result-valid .result-icon {
+      background: rgba(52, 211, 153, 0.15);
+    }
+
+    .result-invalid .result-icon {
+      background: rgba(248, 113, 113, 0.15);
+    }
+
+    .result-title {
+      font-family: var(--serif);
+      font-size: 22px;
+    }
+
+    .result-valid .result-title {
+      color: var(--green);
+    }
+
+    .result-invalid .result-title {
+      color: var(--red);
+    }
+
+    .result-subtitle {
+      font-size: 13px;
+      color: var(--text2);
+      margin-top: 2px;
+    }
+
+    .result-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .result-field {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .result-field-label {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .result-field-value {
+      font-size: 14px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .result-field-value.mono {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent2);
+    }
+
+    /* ── Progress ── */
+    .progress-steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 24px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text3);
+      flex: 1;
+    }
+
+    .step.done {
+      color: var(--green);
+    }
+
+    .step.active {
+      color: var(--text);
+    }
+
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid var(--text3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-family: var(--mono);
+      flex-shrink: 0;
+    }
+
+    .step.done .step-num {
+      background: var(--green);
+      border-color: var(--green);
+      color: var(--navy);
+    }
+
+    .step.active .step-num {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .step-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin: 0 8px;
+    }
+
+    /* ── Log ── */
+    .log-box {
+      background: var(--navy);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.8;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .log-line {
+      display: flex;
+      gap: 8px;
+    }
+
+    .log-time {
+      color: var(--text3);
+    }
+
+    .log-info {
+      color: var(--accent2);
+    }
+
+    .log-success {
+      color: var(--green);
+    }
+
+    .log-error {
+      color: var(--red);
+    }
+
+    .log-warn {
+      color: var(--gold);
+    }
+
+    /* ── Timeline (How it works) ── */
+    .timeline {
+      position: relative;
+      padding-left: 32px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+    }
+
+    .tl-item {
+      position: relative;
+      margin-bottom: 28px;
+    }
+
+    .tl-item::before {
+      content: '';
+      position: absolute;
+      left: -28px;
+      top: 4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--navy2);
+    }
+
+    .tl-title {
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .tl-desc {
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+
+    .tl-code {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: var(--navy3);
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--gold2);
+      border-left: 2px solid var(--gold);
+    }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      color: var(--text);
+      background: rgba(79, 143, 255, 0.03);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: var(--mono);
+    }
+
+    .badge-green {
+      background: rgba(52, 211, 153, 0.1);
+      color: var(--green);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+    }
+
+    .badge-red {
+      background: rgba(248, 113, 113, 0.1);
+      color: var(--red);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+    }
+
+    .badge-blue {
+      background: rgba(79, 143, 255, 0.1);
+      color: var(--accent2);
+      border: 1px solid var(--border2);
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+
+    .spinner.active {
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      header {
+        padding: 16px 20px;
+      }
+
+      .hero {
+        padding: 50px 20px 40px;
+      }
+
+      .stats-row {
+        gap: 24px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .result-fields {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🎓</div>
+      <div class="logo-text">Diploma<span>Chain</span></div>
+    </div>
+    <div class="chain-badge">
+      <div class="dot"></div>
+      Polygon Mumbai Testnet
+    </div>
+    <nav>
+      <button class="nav-btn active" onclick="showSection('main')">Uygulama</button>
+      <button class="nav-btn" onclick="showSection('docs')">Nasıl Çalışır</button>
+    </nav>
+  </header>
+
+  <!-- MAIN SECTION -->
+  <div id="main">
+    <section class="hero">
+      <div class="hero-tag">🔗 Blokzincir Destekli</div>
+      <h1>Akademik Belgeler<br>için <em>Güven Katmanı</em></h1>
+      <p>Diplomaların değiştirilemez bir şekilde blokzincire kaydedilmesi ve işe alım süreçlerinde anlık doğrulanması.
+      </p>
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-num" id="stat-total">1,247</span>
+          <span class="stat-lbl">Kayıtlı Diploma</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="stat-inst">38</span>
+          <span class="stat-lbl">Yetkili Kurum</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="stat-verify">5,891</span>
+          <span class="stat-lbl">Doğrulama Yapıldı</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('verify')">🔍 Diploma Doğrula</button>
+        <button class="tab" onclick="switchTab('issue')">📜 Diploma Kaydet</button>
+        <button class="tab" onclick="switchTab('registry')">📋 Kayıt Defteri</button>
+      </div>
+
+      <!-- TAB: VERIFY -->
+      <div class="tab-panel active" id="tab-verify">
+        <div class="card">
+          <div class="card-title">
+            <div class="card-icon">🔍</div>
+            Diploma Doğrulama
+          </div>
+
+          <div class="form-group">
+            <label>Doğrulama Yöntemi</label>
+            <select id="verify-method" onchange="toggleVerifyMethod()">
+              <option value="file">PDF Dosyası Yükle</option>
+              <option value="hash">Hash Değeri Gir</option>
+            </select>
+          </div>
+
+          <div id="verify-file-section">
+            <div class="form-group">
+              <label>Diploma PDF Dosyası</label>
+              <div class="file-drop" id="verify-drop" ondragover="handleDrag(event,'verify-drop')"
+                ondragleave="removeDrag('verify-drop')" ondrop="handleFileDrop(event,'verify-input')">
+                <input type="file" id="verify-input" accept=".pdf,.jpg,.png"
+                  onchange="handleFileSelect(event,'verify')">
+                <span class="file-drop-icon">📄</span>
+                <p>Dosyayı buraya sürükleyin veya <span>tıklayın</span></p>
+                <p style="font-size:12px;color:var(--text3);margin-top:6px;">PDF, JPG, PNG • Maks. 10MB</p>
+              </div>
+            </div>
+            <div class="form-group" id="verify-hash-preview" style="display:none">
+              <label>Hesaplanan Hash Değeri</label>
+              <div class="hash-box">
+                <span id="verify-hash-val">—</span>
+                <button class="copy-btn" onclick="copyText('verify-hash-val')">Kopyala</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="verify-hash-section" style="display:none">
+            <div class="form-group">
+              <label>SHA-256 Hash Değeri</label>
+              <input type="text" id="manual-hash" placeholder="0x..." spellcheck="false">
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-full" id="verify-btn" onclick="verifyDiploma()">
+            <div class="spinner" id="verify-spinner"></div>
+            Blokzincirde Doğrula
+          </button>
+
+          <div id="verify-result" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- TAB: ISSUE -->
+      <div class="tab-panel" id="tab-issue">
+        <div class="card">
+          <div class="card-title">
+            <div class="card-icon">📜</div>
+            Yeni Diploma Kaydı
+          </div>
+
+          <div class="progress-steps" id="issue-steps">
+            <div class="step active" id="step-1">
+              <div class="step-num">1</div> Belge
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step-2">
+              <div class="step-num">2</div> Bilgiler
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step-3">
+              <div class="step-num">3</div> IPFS
+            </div>
+            <div class="step-line"></div>
+            <div class="step" id="step-4">
+              <div class="step-num">4</div> Zincir
+            </div>
+          </div>
+
+          <!-- Step 1: Dosya -->
+          <div id="issue-step-1">
+            <div class="form-group">
+              <label>Diploma Belgesi (PDF)</label>
+              <div class="file-drop" id="issue-drop" ondragover="handleDrag(event,'issue-drop')"
+                ondragleave="removeDrag('issue-drop')" ondrop="handleFileDrop(event,'issue-input')">
+                <input type="file" id="issue-input" accept=".pdf" onchange="handleFileSelect(event,'issue')">
+                <span class="file-drop-icon" id="issue-icon">📁</span>
+                <p id="issue-drop-text">PDF dosyasını sürükleyin veya <span>tıklayın</span></p>
+                <p style="font-size:12px;color:var(--text3);margin-top:6px;" id="issue-file-name"></p>
+              </div>
+            </div>
+
+            <div class="form-group" id="issue-hash-box" style="display:none">
+              <label>Belge Hash'i (SHA-256)</label>
+              <div class="hash-box">
+                <span id="issue-hash-val" style="font-size:11px;">—</span>
+                <button class="copy-btn" onclick="copyText('issue-hash-val')">Kopyala</button>
+              </div>
+            </div>
+
+            <button class="btn btn-primary btn-full" onclick="goStep(2)" id="step1-next" disabled>
+              Devam Et →
+            </button>
+          </div>
+
+          <!-- Step 2: Bilgiler -->
+          <div id="issue-step-2" style="display:none">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Mezunun Adı Soyadı</label>
+                <input type="text" id="field-name" placeholder="Ahmet Yılmaz">
+              </div>
+              <div class="form-group">
+                <label>TC Kimlik No (Hash'lenecek)</label>
+                <input type="text" id="field-tck" placeholder="12345678901" maxlength="11">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Bölüm / Program</label>
+                <input type="text" id="field-degree" placeholder="Bilgisayar Mühendisliği">
+              </div>
+              <div class="form-group">
+                <label>Derece</label>
+                <select id="field-level">
+                  <option>Lisans</option>
+                  <option>Yüksek Lisans</option>
+                  <option>Doktora</option>
+                  <option>Önlisans</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Mezuniyet Tarihi</label>
+                <input type="text" id="field-date" placeholder="2024-06-15">
+              </div>
+              <div class="form-group">
+                <label>Diploma No</label>
+                <input type="text" id="field-dipno" placeholder="2024-ITU-CS-001">
+              </div>
+            </div>
+            <div style="display:flex; gap:12px;">
+              <button class="btn btn-outline" onclick="goStep(1)">← Geri</button>
+              <button class="btn btn-primary" style="flex:1" onclick="goStep(3)">IPFS'e Yükle →</button>
+            </div>
+          </div>
+
+          <!-- Step 3: IPFS -->
+          <div id="issue-step-3" style="display:none">
+            <div class="log-box" id="issue-log">
+              <div class="log-line"><span class="log-time">00:00</span><span class="log-info"> Hazır. "Yükle" butonuna
+                  basın...</span></div>
+            </div>
+            <div class="form-group" id="ipfs-result-group" style="display:none; margin-top:16px;">
+              <label>IPFS CID</label>
+              <div class="hash-box">
+                <span id="ipfs-cid-val">—</span>
+                <button class="copy-btn" onclick="copyText('ipfs-cid-val')">Kopyala</button>
+              </div>
+            </div>
+            <div style="display:flex; gap:12px; margin-top:16px;">
+              <button class="btn btn-outline" onclick="goStep(2)">← Geri</button>
+              <button class="btn btn-gold" style="flex:1" onclick="simulateIPFS()" id="ipfs-btn">
+                IPFS'e Yükle
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 4: Blokzincir -->
+          <div id="issue-step-4" style="display:none">
+            <div class="form-group">
+              <label>Kurumunuzun Wallet Adresi</label>
+              <input type="text" id="field-wallet" placeholder="0x..."
+                value="0x742d35Cc6634C0532925a3b844Bc454e4438f44e">
+            </div>
+            <div class="log-box" id="chain-log" style="margin-bottom:16px;">
+              <div class="log-line"><span class="log-time">00:00</span><span class="log-info"> İşlem imzalamak için
+                  MetaMask açılacak...</span></div>
+            </div>
+            <button class="btn btn-gold btn-full" onclick="simulateChainWrite()" id="chain-btn">
+              🔗 Blokzincire Kaydet
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: REGISTRY -->
+      <div class="tab-panel" id="tab-registry">
+        <div class="card">
+          <div class="card-title">
+            <div class="card-icon">📋</div>
+            Son Kayıtlar
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Mezun</th>
+                <th>Derece</th>
+                <th>Kurum</th>
+                <th>Tarih</th>
+                <th>Durum</th>
+                <th>Hash</th>
+              </tr>
+            </thead>
+            <tbody id="registry-table">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- DOCS SECTION -->
+  <div id="docs" style="display:none">
+    <div class="container" style="max-width:720px; padding-top:48px;">
+      <h2 style="font-family:var(--serif);font-size:36px;margin-bottom:8px;color:var(--text)">Sistem Mimarisi</h2>
+      <p style="color:var(--text2);margin-bottom:40px;font-size:15px;">Veri bütünlüğü ve güvenli saklama: adım adım akış
+      </p>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon">🏛️</div> Kayıt Akışı (Üniversite)
+        </div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-title">1. Belge Hazırlama</div>
+            <div class="tl-desc">Diploma PDF'i oluşturulur. Frontend'de SHA-256 hash hesaplanır. Belge hiçbir zaman
+              sunucuya gönderilmez.</div>
+            <div class="tl-code">hash = SHA256(pdf_buffer) → "0x3a7f..."</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-title">2. IPFS'e Yükleme</div>
+            <div class="tl-desc">PDF, merkezi olmayan IPFS ağına yüklenir. İçerik-adresli sistemde her dosyanın hash'i
+              kendi adresidir.</div>
+            <div class="tl-code">ipfs add diploma.pdf → CID: "QmYwAP..."</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-title">3. Smart Contract Çağrısı</div>
+            <div class="tl-desc">Yalnızca hash değeri ve IPFS CID blokzincire yazılır. Kişisel veriler zincire girmez —
+              KVKK uyumu sağlanır.</div>
+            <div class="tl-code">registry.issueDiploma(hash, cid, name, degree)</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-title">4. Blok Onayı</div>
+            <div class="tl-desc">İşlem Polygon/Ethereum ağında yaklaşık 2 saniyede onaylanır. Artık değiştirilemez,
+              silinemez.</div>
+            <div class="tl-code">TX: 0x89ab... | Block: 12,847,234</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon">🏢</div> Doğrulama Akışı (İşveren)
+        </div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-title">1. Başvurudan PDF Al</div>
+            <div class="tl-desc">Aday, diploma PDF'ini iş başvurusuna ekler. İşveren dosyayı DiplomaChain'e yükler.
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-title">2. Hash Hesapla</div>
+            <div class="tl-desc">Sistem otomatik olarak yüklenen dosyanın SHA-256 hash'ini hesaplar. Bu işlem
+              <b>tarayıcıda</b> gerçekleşir.
+            </div>
+            <div class="tl-code">hash = SHA256(uploaded_file)</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-title">3. Zinciri Sorgula</div>
+            <div class="tl-desc">Hash blokzincirde aranır. Kayıt varsa kurumu, tarihi, IPFS linki ve iptal durumu döner.
+            </div>
+            <div class="tl-code">registry.verifyDiploma(hash) → {valid, institution, ...}</div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-title">4. Sonuç</div>
+            <div class="tl-desc">Yeşil = belge gerçek, orijinal, iptal edilmemiş. Kırmızı = kayıt yok veya belge
+              değiştirilmiş.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon">🔒</div> Güvenlik Garantileri
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div style="padding:16px;background:var(--navy3);border-radius:10px;border:1px solid var(--border)">
+            <div style="font-size:20px;margin-bottom:8px;">🔗</div>
+            <div style="font-size:14px;font-weight:500;margin-bottom:4px;color:var(--text)">Değiştirilemezlik</div>
+            <div style="font-size:13px;color:var(--text2)">Blokzincire yazılan kayıt hiç kimse tarafından değiştirilemez
+              veya silinemez.</div>
+          </div>
+          <div style="padding:16px;background:var(--navy3);border-radius:10px;border:1px solid var(--border)">
+            <div style="font-size:20px;margin-bottom:8px;">🌐</div>
+            <div style="font-size:14px;font-weight:500;margin-bottom:4px;color:var(--text)">Merkezi Olmama</div>
+            <div style="font-size:13px;color:var(--text2)">Tek bir sunucu yok. Ağ çalıştığı sürece kayıtlar
+              erişilebilir.</div>
+          </div>
+          <div style="padding:16px;background:var(--navy3);border-radius:10px;border:1px solid var(--border)">
+            <div style="font-size:20px;margin-bottom:8px;">🔐</div>
+            <div style="font-size:14px;font-weight:500;margin-bottom:4px;color:var(--text)">Şeffaf Yetkilendirme</div>
+            <div style="font-size:13px;color:var(--text2)">Hangi kurumların kayıt yapabildiği herkese açık, zincirde
+              görünür.</div>
+          </div>
+          <div style="padding:16px;background:var(--navy3);border-radius:10px;border:1px solid var(--border)">
+            <div style="font-size:20px;margin-bottom:8px;">🛡️</div>
+            <div style="font-size:14px;font-weight:500;margin-bottom:4px;color:var(--text)">KVKK Uyumu</div>
+            <div style="font-size:13px;color:var(--text2)">Kişisel veriler zincire yazılmaz. Sadece hash ve IPFS CID
+              kaydedilir.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+    const RPC_URL = "http://127.0.0.1:8545";
+    const ABI = [
+      "function verifyDiploma(bytes32 _documentHash) view returns (bool valid, string ipfsCid, address institution, string institutionName, uint256 issuedAt, bool isRevoked, string recipientName, string degree)"
+    ];
+    // ─── Örnek Veri ───────────────────────────────────────────────────────
+    const sampleRegistry = [
+      { name: "Ahmet Yılmaz", degree: "Bilgisayar Müh. Lisans", institution: "İTÜ", date: "2024-06-15", status: "valid", hash: "0x3a7f...c2e1" },
+      { name: "Zeynep Kaya", degree: "Tıp Doktorası", institution: "Hacettepe", date: "2024-06-20", status: "valid", hash: "0x9b2d...f4a8" },
+      { name: "Mert Demir", degree: "Hukuk Lisans", institution: "ODTÜ", date: "2024-05-30", status: "valid", hash: "0xd1e7...88bc" },
+      { name: "Selin Arslan", degree: "MBA", institution: "Boğaziçi", date: "2023-12-15", status: "revoked", hash: "0x5c4a...1d9f" },
+      { name: "Burak Şahin", degree: "Elektrik Müh. YL", institution: "İTÜ", date: "2024-06-10", status: "valid", hash: "0x7f3b...e245" },
+    ];
+
+    // Gerçek uygulamada bu veriler blokzincirden okunur.
+    // Şimdi demo amaçlı kayıtlı hash'ler:
+    const knownHashes = {
+      "0xabc123demo": {
+        valid: true,
+        recipientName: "Ahmet Yılmaz",
+        degree: "Bilgisayar Mühendisliği Lisans",
+        institutionName: "İstanbul Teknik Üniversitesi",
+        issuedAt: 1718438400,
+        ipfsCid: "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",
+        isRevoked: false,
+        txHash: "0x89ab45cd...12ef",
+        blockNumber: "12847234"
+      }
+    };
+
+    // ─── Tab / Section ────────────────────────────────────────────────────
+    function switchTab(name) {
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', ['verify', 'issue', 'registry'][i] === name);
+      });
+      document.querySelectorAll('.tab-panel').forEach((p, i) => {
+        p.classList.toggle('active', ['tab-verify', 'tab-issue', 'tab-registry'][i] === 'tab-' + name);
+      });
+      if (name === 'registry') renderRegistry();
+    }
+
+    function showSection(s) {
+      document.getElementById('main').style.display = s === 'main' ? '' : 'none';
+      document.getElementById('docs').style.display = s === 'docs' ? '' : 'none';
+      document.querySelectorAll('.nav-btn').forEach((b, i) => {
+        b.classList.toggle('active', ['main', 'docs'][i] === s);
+      });
+    }
+
+    // ─── Registry Table ───────────────────────────────────────────────────
+    function renderRegistry() {
+      const tbody = document.getElementById('registry-table');
+      tbody.innerHTML = sampleRegistry.map(r => `
+    <tr>
+      <td style="color:var(--text);font-weight:500">${r.name}</td>
+      <td>${r.degree}</td>
+      <td><span class="badge badge-blue">${r.institution}</span></td>
+      <td style="font-family:var(--mono);font-size:12px">${r.date}</td>
+      <td><span class="badge ${r.status === 'valid' ? 'badge-green' : 'badge-red'}">${r.status === 'valid' ? '✓ Geçerli' : '✗ İptal'}</span></td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--accent2)">${r.hash}</td>
+    </tr>
+  `).join('');
+    }
+
+    // ─── File Handling ────────────────────────────────────────────────────
+    function handleDrag(e, id) {
+      e.preventDefault();
+      document.getElementById(id).classList.add('drag-over');
+    }
+    function removeDrag(id) {
+      document.getElementById(id).classList.remove('drag-over');
+    }
+    function handleFileDrop(e, inputId) {
+      e.preventDefault();
+      const input = document.getElementById(inputId);
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+    }
+
+    async function handleFileSelect(e, mode) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const hash = await computeFileHash(file);
+
+      if (mode === 'verify') {
+        document.getElementById('verify-hash-val').textContent = hash;
+        document.getElementById('verify-hash-preview').style.display = 'block';
+      } else {
+        document.getElementById('issue-hash-val').textContent = hash;
+        document.getElementById('issue-hash-box').style.display = 'block';
+        document.getElementById('issue-icon').textContent = '📄';
+        document.getElementById('issue-drop-text').innerHTML = `<span style="color:var(--green)">✓ ${file.name}</span>`;
+        document.getElementById('issue-file-name').textContent = `${(file.size / 1024).toFixed(1)} KB · SHA-256 hesaplandı`;
+        document.getElementById('step1-next').disabled = false;
+      }
+    }
+
+    async function computeFileHash(file) {
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // ─── Verify Method Toggle ─────────────────────────────────────────────
+    function toggleVerifyMethod() {
+      const method = document.getElementById('verify-method').value;
+      document.getElementById('verify-file-section').style.display = method === 'file' ? '' : 'none';
+      document.getElementById('verify-hash-section').style.display = method === 'hash' ? '' : 'none';
+    }
+
+    // ─── Verify Logic ─────────────────────────────────────────────────────
+    async function verifyDiploma() {
+      const btn = document.getElementById('verify-btn');
+      const spinner = document.getElementById('verify-spinner');
+      const result = document.getElementById('verify-result');
+      const method = document.getElementById('verify-method').value;
+
+      let hash;
+      if (method === 'file') {
+        hash = document.getElementById('verify-hash-val').textContent;
+        if (hash === '—') { alert('Lütfen önce bir dosya seçin.'); return; }
+      } else {
+        hash = document.getElementById('manual-hash').value.trim();
+        if (!hash) { alert('Lütfen hash değerini girin.'); return; }
+      }
+
+      btn.disabled = true;
+      spinner.classList.add('active');
+      btn.lastChild.textContent = ' Sorgulanıyor...';
+      result.style.display = 'none';
+
+      // Simüle edilmiş blokzincir sorgusu
+      await sleep(1800);
+
+      let found = null;
+      try {
+        const provider = new ethers.JsonRpcProvider(RPC_URL);
+        const registry = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+        const result = await registry.verifyDiploma(hash);
+        if (result.issuedAt > 0n) {
+          found = {
+            valid: result.valid,
+            recipientName: result.recipientName,
+            degree: result.degree,
+            institutionName: result.institutionName,
+            issuedAt: Number(result.issuedAt),
+            ipfsCid: result.ipfsCid,
+            isRevoked: result.isRevoked,
+            txHash: "Lokal ağ",
+            blockNumber: "—"
+          };
+        }
+      } catch (err) {
+        console.error("Sorgu hatası:", err);
+      }
+
+      spinner.classList.remove('active');
+      btn.disabled = false;
+      btn.lastChild.textContent = ' Blokzincirde Doğrula';
+
+      result.style.display = 'block';
+      result.innerHTML = found
+        ? renderValidResult(found, hash)
+        : renderInvalidResult(hash);
+    }
+
+
+    function renderValidResult(data, hash) {
+      const date = new Date(data.issuedAt * 1000).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long', day: 'numeric' });
+      return `
+    <div class="result-card result-valid">
+      <div class="result-header">
+        <div class="result-icon">✓</div>
+        <div>
+          <div class="result-title">Diploma Geçerli</div>
+          <div class="result-subtitle">Blokzincirde kayıtlı ve aktif</div>
+        </div>
+      </div>
+      <div class="result-fields">
+        <div class="result-field">
+          <div class="result-field-label">Mezun</div>
+          <div class="result-field-value">${data.recipientName}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">Derece</div>
+          <div class="result-field-value">${data.degree}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">Veren Kurum</div>
+          <div class="result-field-value">${data.institutionName}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">Veriliş Tarihi</div>
+          <div class="result-field-value">${date}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">İptal Durumu</div>
+          <div class="result-field-value" style="color:var(--green)">✓ Aktif</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">Blok No</div>
+          <div class="result-field-value mono">#${data.blockNumber}</div>
+        </div>
+        <div class="result-field" style="grid-column:1/-1">
+          <div class="result-field-label">IPFS Linki</div>
+          <div class="result-field-value mono">
+            <a href="https://ipfs.io/ipfs/${data.ipfsCid}" target="_blank" style="color:var(--accent2);text-decoration:none">
+              ipfs.io/ipfs/${data.ipfsCid}
+            </a>
+          </div>
+        </div>
+        <div class="result-field" style="grid-column:1/-1">
+          <div class="result-field-label">Transaction Hash</div>
+          <div class="result-field-value mono">${data.txHash}</div>
+        </div>
+      </div>
+    </div>`;
+    }
+
+    function renderInvalidResult(hash) {
+      return `
+    <div class="result-card result-invalid">
+      <div class="result-header">
+        <div class="result-icon">✗</div>
+        <div>
+          <div class="result-title">Diploma Bulunamadı</div>
+          <div class="result-subtitle">Bu hash blokzincirde kayıtlı değil</div>
+        </div>
+      </div>
+      <div class="result-fields">
+        <div class="result-field" style="grid-column:1/-1">
+          <div class="result-field-label">Sorgulanan Hash</div>
+          <div class="result-field-value mono" style="color:var(--red)">${hash.slice(0, 32)}...</div>
+        </div>
+      </div>
+      <p style="margin-top:16px;font-size:13px;color:var(--text2)">
+        Olası nedenler: Belge sahte, dosya değiştirilmiş veya henüz sisteme kaydedilmemiş.
+      </p>
+    </div>`;
+    }
+
+    // ─── Issue Steps ──────────────────────────────────────────────────────
+    function goStep(n) {
+      for (let i = 1; i <= 4; i++) {
+        const el = document.getElementById('issue-step-' + i);
+        if (el) el.style.display = i === n ? '' : 'none';
+        const step = document.getElementById('step-' + i);
+        if (step) {
+          step.classList.toggle('done', i < n);
+          step.classList.toggle('active', i === n);
+          step.classList.remove(...['done', 'active'].filter(c => !step.classList.contains(c)));
+          if (i < n) { step.classList.add('done'); step.classList.remove('active'); }
+          else if (i === n) { step.classList.add('active'); step.classList.remove('done'); }
+          else { step.classList.remove('done', 'active'); }
+        }
+      }
+    }
+
+    // ─── IPFS Simulation ──────────────────────────────────────────────────
+    async function simulateIPFS() {
+      const btn = document.getElementById('ipfs-btn');
+      const log = document.getElementById('issue-log');
+      btn.disabled = true;
+
+      const msgs = [
+        ['info', 'Dosya parçalara ayrılıyor (chunking)...'],
+        ['info', 'IPFS düğümüne bağlanılıyor...'],
+        ['info', 'Merkle DAG oluşturuluyor...'],
+        ['info', 'İçerik IPFS ağına yükleniyor...'],
+        ['success', 'Pinata ile sabitleme (pinning) yapılıyor...'],
+        ['success', '✓ IPFS yüklemesi tamamlandı!'],
+      ];
+
+      log.innerHTML = '';
+      for (const [type, msg] of msgs) {
+        await sleep(600);
+        const t = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        log.innerHTML += `<div class="log-line"><span class="log-time">${t}</span><span class="log-${type}"> ${msg}</span></div>`;
+        log.scrollTop = log.scrollHeight;
+      }
+
+      const fakeCid = 'QmY' + Math.random().toString(36).slice(2, 16).toUpperCase() + 'a3b844Bc';
+      document.getElementById('ipfs-cid-val').textContent = fakeCid;
+      document.getElementById('ipfs-result-group').style.display = '';
+      btn.disabled = false;
+      btn.textContent = '✓ Yüklendi — Tekrar Yükle';
+
+      setTimeout(() => goStep(4), 800);
+    }
+
+    // ─── Chain Write Simulation ───────────────────────────────────────────
+    async function simulateChainWrite() {
+      const btn = document.getElementById('chain-btn');
+      const log = document.getElementById('chain-log');
+      btn.disabled = true;
+
+      const msgs = [
+        ['warn', 'MetaMask onay bekleniyor...'],
+        ['info', 'İşlem imzalandı, ağa gönderiliyor...'],
+        ['info', 'Mempool\'da bekleniyor...'],
+        ['info', 'Polygon validatörler tarafından işleniyor...'],
+        ['success', '✓ 1. onay alındı (2/2 gerekli)'],
+        ['success', '✓ İşlem kesinleşti! Blok: #' + (12847000 + Math.floor(Math.random() * 1000))],
+      ];
+
+      log.innerHTML = '';
+      for (const [type, msg] of msgs) {
+        await sleep(700);
+        const t = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        log.innerHTML += `<div class="log-line"><span class="log-time">${t}</span><span class="log-${type}"> ${msg}</span></div>`;
+        log.scrollTop = log.scrollHeight;
+      }
+
+      const txHash = '0x' + [...Array(64)].map(() => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
+      await sleep(300);
+      log.innerHTML += `<div class="log-line"><span class="log-time">--:--</span><span class="log-success"> TX: ${txHash.slice(0, 20)}...</span></div>`;
+
+      btn.style.background = 'rgba(52,211,153,0.15)';
+      btn.style.border = '1px solid rgba(52,211,153,0.3)';
+      btn.style.color = 'var(--green)';
+      btn.textContent = '✓ Blokzincire Kaydedildi!';
+
+      document.getElementById('stat-total').textContent = (1248).toLocaleString('tr-TR');
+    }
+
+    // ─── Utils ────────────────────────────────────────────────────────────
+    function copyText(id) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector(`[onclick="copyText('${id}')"]`);
+        const orig = btn.textContent;
+        btn.textContent = 'Kopyalandı!';
+        btn.style.color = 'var(--green)';
+        setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+      });
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // Animate stats on load
+    function animateStat(id, target, suffix = '') {
+      let cur = 0;
+      const step = Math.ceil(target / 40);
+      const t = setInterval(() => {
+        cur = Math.min(cur + step, target);
+        document.getElementById(id).textContent = cur.toLocaleString('tr-TR') + suffix;
+        if (cur >= target) clearInterval(t);
+      }, 30);
+    }
+
+    window.onload = () => {
+      setTimeout(() => animateStat('stat-total', 1247), 300);
+      setTimeout(() => animateStat('stat-inst', 38), 500);
+      setTimeout(() => animateStat('stat-verify', 5891), 700);
+    };
+  </script>
+</body>
+
+</html>

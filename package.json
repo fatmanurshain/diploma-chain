@@ -1,0 +1,21 @@
+{
+  "name": "diploma-chain",
+  "version": "1.0.0",
+  "description": "Akademik Sertifika ve Diploma Doğrulama Sistemi",
+  "license": "MIT",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.js --network hardhat",
+    "deploy:mumbai": "hardhat run scripts/deploy.js --network mumbai"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0",
+    "dotenv": "^16.3.1"
+  },
+  "dependencies": {
+    "ethers": "^6.9.0",
+    "form-data": "^4.0.0"
+  }
+}
