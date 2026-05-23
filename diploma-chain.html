@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DiplomaChain — Akademik Belge Doğrulama</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <script>const PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI3MjU5YTUxYy05YWM2LTRhY2MtOTI2My04NzI3ZTZmNWM5YTYiLCJlbWFpbCI6InNobmZhdG1hbnVyckBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiMTc0ZjZjODg3MDVmMzg4MmE0ZGIiLCJzY29wZWRLZXlTZWNyZXQiOiJiY2YxOWUxMGQwNmRjMzM2ODJjNzJmYTYxZWViMzViMzRlYzM5YTc0NGM0OWUwMTU2ZDc1NDk4MGNiMThjZjQ0IiwiZXhwIjoxODEwMjgyMTEzfQ.p5fP0AX8EV5c3kY6nDNAXsRXZow7UZD8gRdyGfj4Vj8";</script>
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap"
     rel="stylesheet">
@@ -1235,8 +1236,8 @@
   </div>
 
   <script>
-    const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-    const RPC_URL = "http://127.0.0.1:8545";
+    const CONTRACT_ADDRESS = "0x6832883FB1A5F628B42f22f89524C8CC33C75C7E";
+    const RPC_URL = "https://polygon-amoy.g.alchemy.com/v2/1E4D__LJ4eFy-903ns74R";
     const ABI = [
       "function verifyDiploma(bytes32 _documentHash) view returns (bool valid, string ipfsCid, address institution, string institutionName, uint256 issuedAt, bool isRevoked, string recipientName, string degree)"
     ];
@@ -1375,6 +1376,7 @@
       try {
         const provider = new ethers.JsonRpcProvider(RPC_URL);
         const registry = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+        console.log("Sorgulanan hash:", hash);
         const result = await registry.verifyDiploma(hash);
         if (result.issuedAt > 0n) {
           found = {
@@ -1501,30 +1503,74 @@
       const log = document.getElementById('issue-log');
       btn.disabled = true;
 
-      const msgs = [
-        ['info', 'Dosya parçalara ayrılıyor (chunking)...'],
-        ['info', 'IPFS düğümüne bağlanılıyor...'],
-        ['info', 'Merkle DAG oluşturuluyor...'],
-        ['info', 'İçerik IPFS ağına yükleniyor...'],
-        ['success', 'Pinata ile sabitleme (pinning) yapılıyor...'],
-        ['success', '✓ IPFS yüklemesi tamamlandı!'],
-      ];
+      const fileInput = document.getElementById('issue-input');
+      const file = fileInput.files[0];
 
-      log.innerHTML = '';
-      for (const [type, msg] of msgs) {
-        await sleep(600);
+      if (!file) {
+        log.innerHTML = '<div class="log-line"><span class="log-time">--:--</span><span class="log-error"> Hata: Önce dosya seçin.</span></div>';
+        btn.disabled = false;
+        return;
+      }
+
+      function addLog(type, msg) {
         const t = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         log.innerHTML += `<div class="log-line"><span class="log-time">${t}</span><span class="log-${type}"> ${msg}</span></div>`;
         log.scrollTop = log.scrollHeight;
       }
 
-      const fakeCid = 'QmY' + Math.random().toString(36).slice(2, 16).toUpperCase() + 'a3b844Bc';
-      document.getElementById('ipfs-cid-val').textContent = fakeCid;
-      document.getElementById('ipfs-result-group').style.display = '';
-      btn.disabled = false;
-      btn.textContent = '✓ Yüklendi — Tekrar Yükle';
+      log.innerHTML = '';
+      addLog('info', 'Dosya okunuyor...');
 
-      setTimeout(() => goStep(4), 800);
+      try {
+        // Dosyayı FormData ile Pinata'ya gönder
+        addLog('info', 'IPFS\'e yükleniyor (Pinata)...');
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+
+        const metadata = JSON.stringify({
+          name: file.name,
+          keyvalues: {
+            recipientName: document.getElementById('field-name').value,
+            degree: document.getElementById('field-degree').value,
+            level: document.getElementById('field-level').value,
+            date: document.getElementById('field-date').value,
+          }
+        });
+        formData.append('pinataMetadata', metadata);
+        formData.append('pinataOptions', JSON.stringify({ cidVersion: 1 }));
+
+        const response = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${PINATA_JWT}`,
+          },
+          body: formData
+        });
+
+        if (!response.ok) {
+          const err = await response.text();
+          throw new Error('Pinata hatası: ' + err);
+        }
+
+        const result = await response.json();
+        const cid = result.IpfsHash;
+
+        addLog('success', '✓ IPFS yüklemesi tamamlandı!');
+        addLog('success', 'CID: ' + cid);
+
+        document.getElementById('ipfs-cid-val').textContent = cid;
+        document.getElementById('ipfs-result-group').style.display = '';
+
+        btn.disabled = false;
+        btn.textContent = '✓ Yüklendi';
+
+        setTimeout(() => goStep(4), 800);
+
+      } catch (err) {
+        addLog('error', 'Hata: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Tekrar Dene';
+      }
     }
 
     // ─── Chain Write Simulation ───────────────────────────────────────────
@@ -1533,33 +1579,57 @@
       const log = document.getElementById('chain-log');
       btn.disabled = true;
 
-      const msgs = [
-        ['warn', 'MetaMask onay bekleniyor...'],
-        ['info', 'İşlem imzalandı, ağa gönderiliyor...'],
-        ['info', 'Mempool\'da bekleniyor...'],
-        ['info', 'Polygon validatörler tarafından işleniyor...'],
-        ['success', '✓ 1. onay alındı (2/2 gerekli)'],
-        ['success', '✓ İşlem kesinleşti! Blok: #' + (12847000 + Math.floor(Math.random() * 1000))],
-      ];
-
-      log.innerHTML = '';
-      for (const [type, msg] of msgs) {
-        await sleep(700);
+      function addLog(type, msg) {
         const t = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         log.innerHTML += `<div class="log-line"><span class="log-time">${t}</span><span class="log-${type}"> ${msg}</span></div>`;
         log.scrollTop = log.scrollHeight;
       }
 
-      const txHash = '0x' + [...Array(64)].map(() => '0123456789abcdef'[Math.floor(Math.random() * 16)]).join('');
-      await sleep(300);
-      log.innerHTML += `<div class="log-line"><span class="log-time">--:--</span><span class="log-success"> TX: ${txHash.slice(0, 20)}...</span></div>`;
+      log.innerHTML = '';
 
-      btn.style.background = 'rgba(52,211,153,0.15)';
-      btn.style.border = '1px solid rgba(52,211,153,0.3)';
-      btn.style.color = 'var(--green)';
-      btn.textContent = '✓ Blokzincire Kaydedildi!';
+      try {
+        const provider = new ethers.JsonRpcProvider(RPC_URL);
+        const signer = new ethers.Wallet("8ddeae28eba605c5723cb893e77e6f8b12aff83ec8f43eb5c1200d78911ba570", provider);
+        addLog('info', 'Cüzdan: ' + signer.address);
 
-      document.getElementById('stat-total').textContent = (1248).toLocaleString('tr-TR');
+        const WRITE_ABI = [
+          "function issueDiploma(bytes32 _documentHash, string calldata _ipfsCid, string calldata _recipientName, string calldata _degree) external"
+        ];
+        const registry = new ethers.Contract(CONTRACT_ADDRESS, WRITE_ABI, signer);
+
+        const hash = document.getElementById('issue-hash-val').textContent;
+        const cid = document.getElementById('ipfs-cid-val').textContent;
+        const name = document.getElementById('field-name').value;
+        const degree = document.getElementById('field-degree').value + ' ' + document.getElementById('field-level').value;
+
+        if (!hash || hash === '—') throw new Error('Hash değeri bulunamadı. 1. adıma dönün.');
+        if (!cid || cid === '—') throw new Error('IPFS CID bulunamadı. 3. adımı tamamlayın.');
+        if (!name) throw new Error('Mezun adı boş olamaz.');
+
+        addLog('info', 'İşlem gönderiliyor...');
+        const tx = await registry.issueDiploma(hash, cid, name, degree, {
+          maxFeePerGas: ethers.parseUnits("50", "gwei"),
+          maxPriorityFeePerGas: ethers.parseUnits("30", "gwei"),
+        });
+        addLog('info', 'TX: ' + tx.hash.slice(0, 24) + '...');
+        addLog('info', 'Blok onayı bekleniyor...');
+
+        const receipt = await tx.wait();
+        addLog('success', '✓ Onaylandı! Blok: #' + receipt.blockNumber);
+
+        btn.style.background = 'rgba(52,211,153,0.15)';
+        btn.style.border = '1px solid rgba(52,211,153,0.3)';
+        btn.style.color = 'var(--green)';
+        btn.textContent = '✓ Blokzincire Kaydedildi!';
+
+        document.getElementById('stat-total').textContent =
+          (parseInt(document.getElementById('stat-total').textContent.replace(/\./g, '')) + 1).toLocaleString('tr-TR');
+
+      } catch (err) {
+        addLog('error', 'Hata: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = '🔗 Tekrar Dene';
+      }
     }
 
     // ─── Utils ────────────────────────────────────────────────────────────

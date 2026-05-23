@@ -26,6 +26,8 @@ async function main() {
 
   // Örnek kurumları yetkilendir
   const universities = [
+  { address: "0x4fcC93AF27b618c7F7bf2E57B425EC5A51db134c", name: "Test Kullanıcı" },
+
     { address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e", name: "İstanbul Teknik Üniversitesi" },
     { address: "0x5B38Da6a701c568545dCfcB03FcB875f56beddC4", name: "Orta Doğu Teknik Üniversitesi" },
     { address: "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2", name: "Boğaziçi Üniversitesi" },

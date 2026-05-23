@@ -20,14 +20,13 @@ module.exports = {
       chainId: 31337,
     },
 
-    // Polygon Mumbai Testnet
-    mumbai: {
-      url: process.env.POLYGON_MUMBAI_RPC || "https://rpc-mumbai.maticvigil.com",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 80001,
-      gasPrice: 20000000000,
-    },
-
+    // Polygon Amoy Testnet
+    amoy: {
+       url: process.env.POLYGON_MUMBAI_RPC || "https://rpc-amoy.polygon.technology",
+        accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+        chainId: 80002,
+        gasPrice: 30000000000,
+},
     // Ethereum Sepolia Testnet
     sepolia: {
       url: process.env.SEPOLIA_RPC || `https://sepolia.infura.io/v3/${process.env.INFURA_KEY}`,
@@ -45,7 +44,7 @@ module.exports = {
 
   etherscan: {
     apiKey: {
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY || "",
+      polygonAmoy: process.env.POLYGONSCAN_API_KEY || "",
       sepolia: process.env.ETHERSCAN_API_KEY || "",
       polygon: process.env.POLYGONSCAN_API_KEY || "",
     },
