@@ -12,7 +12,7 @@
 
 ## 📌 Proje Hakkında
 
-DiplomaChain, eğitim kurumlarının verdiği akademik belgelerin sahteciliğini önlemek amacıyla geliştirilmiş bir **Proof of Concept** sistemidir. Yüksek Lisans Blokzincir Dersi vize projesi kapsamında hayata geçirilmiştir.
+DiplomaChain, eğitim kurumlarının verdiği akademik belgelerin sahteciliğini önlemek amacıyla geliştirilmiş bir **Proof of Concept** sistemidir.
 
 **Temel fikir:** Diploma PDF'inin SHA-256 hash değeri blokzincire yazıldıktan sonra hiçbir otorite tarafından değiştirilemez veya silinemez. İşverenler, herhangi bir merkezi sisteme bağımlı olmaksızın saniyeler içinde doğrulama yapabilir.
 
@@ -148,8 +148,6 @@ POLYGON_MUMBAI_RPC=https://polygon-amoy.g.alchemy.com/v2/YOUR_KEY
 POLYGONSCAN_API_KEY=...                    # Polygonscan API key
 PINATA_JWT=...                             # Pinata JWT token
 ```
-
-> ⚠️ `.env` dosyasını asla GitHub'a yükleme. `.gitignore`'a eklenmiştir.
 
 ---
 
