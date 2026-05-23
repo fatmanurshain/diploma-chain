@@ -250,7 +250,6 @@ Yeni kurum yetkilendirir. Sadece contract sahibi çağırabilir.
 - [ ] Polygon Mumbai testnet deploy
 - [ ] MetaMask tam entegrasyonu
 - [ ] Gerçek PDF kayıt akışı
-- [ ] QR kod doğrulama
 - [ ] Merkle Tree toplu kayıt
 - [ ] Sıfır bilgi ispatı (ZK Proof)
 
