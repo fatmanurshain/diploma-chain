@@ -1,11 +1,12 @@
 # 🎓 DiplomaChain
 
-> Blokzincir tabanlı akademik diploma doğrulama sistemi — SHA-256 hash değerlerinin Ethereum uyumlu ağlarda değiştirilemez biçimde saklanması ve işe alım süreçlerinde anlık doğrulanması.
+> Blokzincir tabanlı akademik diploma doğrulama sistemi — SHA-256 hash değerlerinin Polygon Amoy testnet üzerinde değiştirilemez biçimde saklanması ve işe alım süreçlerinde anlık doğrulanması.
 
 ![Solidity](https://img.shields.io/badge/Solidity-0.8.19-363636?style=flat-square&logo=solidity)
 ![Hardhat](https://img.shields.io/badge/Hardhat-2.19-yellow?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 ![Tests](https://img.shields.io/badge/Tests-13%2F13%20passing-brightgreen?style=flat-square)
+![Network](https://img.shields.io/badge/Network-Polygon%20Amoy-8247e5?style=flat-square)
 
 ---
 
@@ -26,6 +27,21 @@ DiplomaChain, eğitim kurumlarının verdiği akademik belgelerin sahteciliğini
 
 ---
 
+## 🌐 Canlı Contract (Polygon Amoy Testnet)
+
+```
+Contract Adresi : 0x6832883FB1A5F628B42f22f89524C8CC33C75C7E
+Ağ              : Polygon Amoy (Zincir ID: 80002)
+Blok            : #38352837
+```
+
+Polygonscan'de görüntüle:
+```
+https://amoy.polygonscan.com/address/0x6832883FB1A5F628B42f22f89524C8CC33C75C7E
+```
+
+---
+
 ## 🏗️ Sistem Mimarisi
 
 ```
@@ -41,7 +57,7 @@ DiplomaChain, eğitim kurumlarının verdiği akademik belgelerin sahteciliğini
           │                │  │                │
           │ IPFS · Pinata  │  │ Solidity 0.8.19│
           │ PDF dosyaları  │  │ Hardhat        │
-          │ içerik-adresli │  │ Polygon/ETH    │
+          │ içerik-adresli │  │ Polygon Amoy   │
           │ CID ile erişim │  │ DiplomaRegistry│
           └────────────────┘  └────────────────┘
 ```
@@ -68,8 +84,9 @@ PDF → SHA-256 Hash → verifyDiploma(hash) → Sonuç (Geçerli / Bulunamadı)
 | Geliştirme Ortamı | Hardhat 2.19 | Derleme, test, deploy |
 | Frontend | HTML5 + ethers.js 6.7 | Arayüz + blokzincir etkileşimi |
 | Dosya Depolama | IPFS + Pinata | Merkeziyetsiz PDF saklama |
-| Test Ağı | Polygon Mumbai / Hardhat Lokal | Geliştirme ve test |
+| Ağ | Polygon Amoy Testnet | Düşük maliyetli EVM uyumlu ağ |
 | Hash Algoritması | SHA-256 (Web Crypto API) | Belge parmak izi |
+| Cüzdan | MetaMask | İşlem imzalama |
 
 ---
 
@@ -88,6 +105,7 @@ diploma_chain/
 ├── diploma-chain.html           # Frontend arayüzü
 ├── hardhat.config.js            # Hardhat konfigürasyonu
 ├── package.json
+├── deployment.json              # Deploy bilgileri
 ├── .env.example                 # Ortam değişkenleri şablonu
 └── README.md
 ```
@@ -99,13 +117,15 @@ diploma_chain/
 ### Gereksinimler
 
 - [Node.js](https://nodejs.org) v18 veya üzeri
-- [MetaMask](https://metamask.io) (testnet deploy için)
+- [MetaMask](https://metamask.io) tarayıcı eklentisi
+- [Pinata](https://app.pinata.cloud) hesabı (IPFS için)
+- [Alchemy](https://alchemy.com) hesabı (Polygon Amoy RPC için)
 
 ### 1. Repoyu klonla
 
 ```bash
-git clone https://github.com/kullanici-adi/diploma_chain.git
-cd diploma_chain
+git clone https://github.com/fatmanurshain/diploma-chain.git
+cd diploma-chain
 ```
 
 ### 2. Bağımlılıkları yükle
@@ -124,7 +144,7 @@ cp .env.example .env
 
 ```env
 PRIVATE_KEY=0x...                          # MetaMask private key
-POLYGON_MUMBAI_RPC=https://...             # Alchemy veya Infura RPC URL
+POLYGON_MUMBAI_RPC=https://polygon-amoy.g.alchemy.com/v2/YOUR_KEY
 POLYGONSCAN_API_KEY=...                    # Polygonscan API key
 PINATA_JWT=...                             # Pinata JWT token
 ```
@@ -133,9 +153,24 @@ PINATA_JWT=...                             # Pinata JWT token
 
 ---
 
-## 💻 Lokal Geliştirme
+## 💻 Çalıştırma
 
-Üç terminal gerekli:
+Contract Polygon Amoy'a deploy edilmiş durumda. Sadece web sunucusunu başlatman yeterli:
+
+```bash
+npx http-server . -p 3001 --cors
+```
+
+Tarayıcıda aç:
+```
+http://localhost:3001/diploma-chain.html
+```
+
+MetaMask'ta **Polygon Amoy** ağını seç ve devam et.
+
+### Lokal Geliştirme (İsteğe Bağlı)
+
+Lokal ortamda test etmek istersen üç terminal gerekli:
 
 **Terminal 1 — Lokal blokzinciri başlat:**
 ```bash
@@ -150,18 +185,6 @@ npx hardhat run scripts/deploy.js --network localhost
 **Terminal 3 — Web sunucusunu başlat:**
 ```bash
 npx http-server . -p 3001 --cors
-```
-
-Tarayıcıda aç:
-```
-http://localhost:3001/diploma-chain.html
-```
-
-### Test Hash'i
-
-Deploy sonrası bu hash ile doğrulama test edebilirsin:
-```
-0x1aab1f68ecf00df66e32c582889f4a4c66f7ce5236437b13bb77d453c696deda
 ```
 
 ---
@@ -196,16 +219,6 @@ npx hardhat test
 
   13 passing (823ms)
 ```
-
----
-
-## 🌐 Testnet Deploy (Polygon Mumbai)
-
-```bash
-npx hardhat run scripts/deploy.js --network mumbai
-```
-
-Deploy sonrası contract adresini `.env` dosyasına ve `diploma-chain.html` içindeki `CONTRACT_ADDRESS` değişkenine yaz.
 
 ---
 
@@ -247,9 +260,12 @@ Yeni kurum yetkilendirir. Sadece contract sahibi çağırabilir.
 - [x] Birim testleri (13/13)
 - [x] Lokal deploy ve doğrulama
 - [x] Frontend arayüzü
-- [ ] Polygon Mumbai testnet deploy
-- [ ] MetaMask tam entegrasyonu
-- [ ] Gerçek PDF kayıt akışı
+- [x] IPFS entegrasyonu (Pinata)
+- [x] MetaMask entegrasyonu
+- [x] Polygon Amoy testnet deploy
+- [x] Gerçek PDF kayıt ve doğrulama akışı
+- [ ] Polygon Mainnet deploy
+- [ ] QR kod doğrulama
 - [ ] Merkle Tree toplu kayıt
 - [ ] Sıfır bilgi ispatı (ZK Proof)
 
@@ -262,6 +278,7 @@ Yeni kurum yetkilendirir. Sadece contract sahibi çağırabilir.
 - [IPFS Docs](https://docs.ipfs.tech)
 - [ethers.js v6](https://docs.ethers.org/v6/)
 - [Pinata](https://docs.pinata.cloud)
+- [Polygon Amoy](https://polygon.technology/developers)
 
 ---
 
